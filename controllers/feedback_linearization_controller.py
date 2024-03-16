@@ -13,11 +13,20 @@ class FeedbackLinearizationController(Controller):
         robot state x and desired control v.
         """
         q1, q2, q1_dot, q2_dot = x
-        v = np.reshape(q_r_ddot, (2,1))
-        q_dot = np.array([[q1_dot], [q2_dot]])
+        
+        # FEEDBACK PD
+        e = q_r - [q1, q2]
+        e_dot = q_r_dot - [q1_dot, q2_dot]
+        
+        Kd = np.array([[20, 0], [0, 20]])
+        Kp = np.array([[20, 0], [0, 20]])
+        v = np.reshape(q_r_ddot, (2, 1))+ Kd @ np.reshape(e_dot, (2, 1)) + Kp @ np.reshape(e, (2, 1))
+
+        # NO FEEDBACK
+        #v = q_r_ddot
+
         M = self.model.M(x)
         C = self.model.C(x)
-
-        tau = M @ v + C @ q_dot
-
+        tau = M @ np.reshape(v, (2, 1)) + C @ np.reshape(q_r_dot, (2, 1))
+        print(tau)
         return tau
