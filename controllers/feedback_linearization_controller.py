@@ -5,7 +5,7 @@ from .controller import Controller
 
 class FeedbackLinearizationController(Controller):
     def __init__(self, Tp):
-        self.model = ManiuplatorModel(Tp)
+        self.model = ManiuplatorModel(Tp, 1.0, 0.05)
 
     def calculate_control(self, x, q_r, q_r_dot, q_r_ddot):
         """
@@ -13,20 +13,18 @@ class FeedbackLinearizationController(Controller):
         robot state x and desired control v.
         """
         q1, q2, q1_dot, q2_dot = x
+        q = x[:2]
+        q_dot = x[2:]
+        # PD Feedback
+        e = q_r - q
+        e_dot = q_r_dot - q_dot
         
-        # FEEDBACK PD
-        e = q_r - [q1, q2]
-        e_dot = q_r_dot - [q1_dot, q2_dot]
-        
-        Kd = np.array([[20, 0], [0, 20]])
-        Kp = np.array([[20, 0], [0, 20]])
-        v = np.reshape(q_r_ddot, (2, 1))+ Kd @ np.reshape(e_dot, (2, 1)) + Kp @ np.reshape(e, (2, 1))
+        Kp = np.array([[5], [25]]) * np.eye(2) 
+        Kd = np.eye(2) * 1
+        v = q_r_ddot + Kd @ e_dot + Kp @ e
 
-        # NO FEEDBACK
+        # No Feedback
         #v = q_r_ddot
 
-        M = self.model.M(x)
-        C = self.model.C(x)
-        tau = M @ np.reshape(v, (2, 1)) + C @ np.reshape(q_r_dot, (2, 1))
-        print(tau)
+        tau = self.model.M(x) @ v + self.model.C(x) @ q_r_dot
         return tau
