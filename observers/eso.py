@@ -15,9 +15,22 @@ class ESO:
     def set_B(self, B):
         self.B = B
 
+    def mat_or_scal_multiply(self, B, u):
+        if np.isscalar(u):
+            return B * u
+        else:
+            return B @ u
+
+
     def update(self, q, u):
         self.states.append(copy(self.state))
-        ### TODO implement ESO update
+        
+        z = np.reshape(self.state, (-1, 1))
+        state_dot = self.A @ z + self.mat_or_scal_multiply(self.B, u) + self.L @ (q - self.W @ z)
+
+
+        self.state = self.state + self.Tp * state_dot.ravel()
+
 
     def get_state(self):
         return self.state

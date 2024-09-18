@@ -15,12 +15,13 @@ class FeedbackLinearizationController(Controller):
         q1, q2, q1_dot, q2_dot = x
         q = x[:2]
         q_dot = x[2:]
+
         # PD Feedback
         e = q_r - q
         e_dot = q_r_dot - q_dot
-        
+    
         Kp = np.array([[5], [25]]) * np.eye(2) 
-        Kd = np.eye(2) * 1
+        Kd = 1 * np.eye(2)
         v = q_r_ddot + Kd @ e_dot + Kp @ e
 
         # No Feedback
